@@ -1542,7 +1542,7 @@ function showAddNew( autoIP, closeOld ) {
 						"value='" + ( isAuto ? autoIP : "" ) + "' placeholder='home.dyndns.org'>" +
 					"<label for='os_pw'>" + _( "Open Sprinkler Password:" ) + "</label>" +
 					"<input type='password' name='os_pw' id='os_pw' value=''>" +
-					"<label for='save_pw'>" + _( "Save Password" ) + "</label>" +
+				    "<label for='save_pw'>" + _( "Save Password" ) + "</label>" +
 					"<input type='checkbox' data-wrapper-class='save_pw' name='save_pw' " +
 						"id='save_pw' data-mini='true' checked='checked'>" +
 					( isAuto ? "" :
@@ -3637,11 +3637,7 @@ function showOptions( expandItem ) {
 						if ( escapeJSON( controller.settings.wto ) === data ) {
 							return true;
 						}
-						break;
-					case "mqtt":
-						if ( escapeJSON( controller.settings.mqtt ) === data ) {
-							return true;
-						}
+
 						break;
 					case "isMetric":
 						isMetric = $item.is( ":checked" );
@@ -4056,39 +4052,23 @@ function showOptions( expandItem ) {
 		"</label>";
 	}
 
-	if ( typeof controller.settings.ifkey !== "undefined" || typeof controller.settings.mqtt !== "undefined" ) {
+	if ( typeof controller.settings.ifkey !== "undefined" ) {
 		list += "</fieldset><fieldset data-role='collapsible'" +
 			( typeof expandItem === "string" && expandItem === "integrations" ? " data-collapsed='false'" : "" ) + ">" +
 			"<legend>" + _( "Integrations" ) + "</legend>";
 
-		if ( typeof controller.settings.ifkey !== "undefined" ) {
-			list += "<div class='ui-field-contain'><label for='ifkey'>" + _( "IFTTT Key" ) +
+		list += "<div class='ui-field-contain'><label for='ifkey'>" + _( "IFTTT Key" ) +
+			"<button data-helptext='" +
+				_( "To enable IFTTT, a Maker channel key is required which can be obtained from https://ifttt.com" ) +
+				"' class='help-icon btn-no-border ui-btn ui-icon-info ui-btn-icon-notext'></button>" +
+		"</label><input autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false' data-mini='true' type='text' id='ifkey' value='" + controller.settings.ifkey + "'>" +
+		"</div>";
+
+		list += "<div class='ui-field-contain'><label for='o49'>" + _( "IFTTT Events" ) +
 				"<button data-helptext='" +
-					_( "To enable IFTTT, a Maker channel key is required which can be obtained from https://ifttt.com" ) +
+					_( "Select which events to send to IFTTT for use in recipes." ) +
 					"' class='help-icon btn-no-border ui-btn ui-icon-info ui-btn-icon-notext'></button>" +
-			"</label><input autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false' data-mini='true' type='text' id='ifkey' value='" + controller.settings.ifkey + "'>" +
-			"</div>";
-
-			list += "<div class='ui-field-contain'><label for='o49'>" + _( "IFTTT Events" ) +
-					"<button data-helptext='" +
-						_( "Select which events to send to IFTTT for use in recipes." ) +
-						"' class='help-icon btn-no-border ui-btn ui-icon-info ui-btn-icon-notext'></button>" +
-				"</label><button data-mini='true' id='o49' value='" + controller.options.ife + "'>Configure Events</button></div>";
-		}
-
-		if ( typeof controller.settings.mqtt !== "undefined" ) {
-			list += "<div class='ui-field-contain'>" +
-						"<label for='mqtt'>" + _( "MQTT" ) +
-							"<button style='display:inline-block;' data-helptext='" +
-								_( "OpenSprinkler can send notifications to an MQTT broker at a specified host and port." ) +
-								"' class='help-icon btn-no-border ui-btn ui-icon-info ui-btn-icon-notext'>" +
-							"</button>" +
-						"</label>" +
-						"<button data-mini='true' id='mqtt' value='" + escapeJSON( controller.settings.mqtt ) + "'>" +
-							_( "Tap to Configure" ) +
-						"</button>" +
-					"</div>";
-		}
+			"</label><button data-mini='true' id='o49' value='" + controller.options.ife + "'>Configure Events</button></div>";
 	}
 
 	list += "</fieldset><fieldset class='full-width-slider' data-role='collapsible'" +
@@ -4685,94 +4665,6 @@ function showOptions( expandItem ) {
 		openPopup( popup );
 	} );
 
-	page.find( "#mqtt" ).on( "click", function() {
-		var button = this, curr = button.value,
-			options = $.extend( {}, {
-				en: 0,
-				host: "server",
-				port: 1883,
-				user: "",
-				pass: ""
-			}, controller.settings.mqtt );
-
-		$( ".ui-popup-active" ).find( "[data-role='popup']" ).popup( "close" );
-
-		var popup = $( "<div data-role='popup' data-theme='a' id='mqttSettings'>" +
-				"<div data-role='header' data-theme='b'>" +
-					"<h1>" + _( "MQTT Settings" ) + "</h1>" +
-				"</div>" +
-				"<div class='ui-content'>" +
-					"<label for='enable'>Enable</label>" +
-					"<input class='needsclick mqtt_enable' data-mini='true' data-iconpos='right' id='enable' type='checkbox' " +
-						( options.en ? "checked='checked'" : "" ) + ">" +
-					"<div class='ui-body'>" +
-						"<div class='ui-grid-a' style='display:table;'>" +
-							"<div class='ui-block-a' style='width:40%'>" +
-								"<label for='server' style='padding-top:10px'>" + _( "Broker/Server" ) + "</label>" +
-							"</div>" +
-							"<div class='ui-block-b' style='width:60%'>" +
-								"<input class='mqtt-input' type='text' id='server' data-mini='true' maxlength='50' autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false'" +
-									( options.en ? "" : "disabled='disabled'" ) + " placeholder='" + _( "broker/server" ) + "' value='" + options.host + "' required />" +
-							"</div>" +
-							"<div class='ui-block-a' style='width:40%'>" +
-								"<label for='port' style='padding-top:10px'>" + _( "Port" ) + "</label>" +
-							"</div>" +
-							"<div class='ui-block-b' style='width:60%'>" +
-								"<input class='mqtt-input' type='number' id='port' data-mini='true' pattern='[0-9]*' min='0' max='65535'" +
-									( options.en ? "" : "disabled='disabled'" ) + " placeholder='1883' value='" + options.port + "' required />" +
-							"</div>" +
-							"<div class='ui-block-a' style='width:40%'>" +
-								"<label for='username' style='padding-top:10px'>" + _( "Username" ) + "</label>" +
-							"</div>" +
-							"<div class='ui-block-b' style='width:60%'>" +
-								"<input class='mqtt-input' type='text' id='username' data-mini='true' maxlength='32' autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false'" +
-									( options.en ? "" : "disabled='disabled'" ) + " placeholder='" + _( "username (optional)" ) + "' value='" + options.user + "' required />" +
-							"</div>" +
-							"<div class='ui-block-a' style='width:40%'>" +
-								"<label for='password' style='padding-top:10px'>" + _( "Password" ) + "</label>" +
-							"</div>" +
-							"<div class='ui-block-b' style='width:60%'>" +
-								"<input class='mqtt-input' type='password' id='password' data-mini='true' maxlength='32' autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false'" +
-									( options.en ? "" : "disabled='disabled'" ) + " placeholder='" + _( "password (optional)" ) + "' value='" + options.pass + "' required />" +
-							"</div>" +
-						"</div>" +
-					"</div>" +
-					"<button class='submit' data-theme='b'>" + _( "Submit" ) + "</button>" +
-				"</div>" +
-			"</div>" );
-
-		popup.find( "#enable" ).on( "change", function() {
-			if ( this.checked ) {
-				popup.find( ".mqtt-input" ).textinput( "enable" );
-			} else {
-				popup.find( ".mqtt-input" ).textinput( "disable" );
-			}
-		} );
-
-		popup.find( ".submit" ).on( "click", function() {
-			var options = {
-				en: ( popup.find( "#enable" ).prop( "checked" ) ? 1 : 0 ),
-				host: popup.find( "#server" ).val(),
-				port: parseInt( popup.find( "#port" ).val() ),
-				user: popup.find( "#username" ).val(),
-				pass: popup.find( "#password" ).val()
-			};
-
-			popup.popup( "close" );
-			if ( curr === escapeJSON( options ) ) {
-				return;
-			} else {
-				button.value = escapeJSON( options );
-				header.eq( 2 ).prop( "disabled", false );
-				page.find( ".submit" ).addClass( "hasChanges" );
-			}
-		} );
-
-		popup.css( "max-width", "380px" );
-
-		openPopup( popup, { positionTo: "window" } );
-    } );
-
 	page.find( ".datetime-input" ).on( "click", function() {
 		var input = $( this ).find( "button" );
 
@@ -5017,15 +4909,18 @@ var showHome = ( function() {
 						var gpioPin = 5, activeState = 1, freePins, sel;
 
 						if ( getHWVersion() === "OSPi" ) {
-							freePins = [ 5, 6, 7, 8, 9, 10, 11, 12, 13, 16, 18, 19, 20, 21, 23, 24, 25, 26 ];
-						} else if ( getHWVersion() === "2.3" ) {
+
+							freePins = [ 472, 473, 474, 475, 476, 477, 478, 479, 480, 481, 482, 483, 484, 485, 486, 487, 488, 489, 490, 491, 492, 493, 494, 495, 496, 497, 498, 499, 500, 501, 502, 503 ];
+
+                                                //      FreePins = [ 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99];
+                                                   } else if ( getHWVersion() === "2.3" ) {
 							freePins = [ 2, 10, 12, 13, 14, 15, 18, 19 ];
 						}
 
 						if ( type === value ) {
 							data = data.split( "" );
-							gpioPin = parseInt( data[ 0 ] + data[ 1 ] );
-							activeState = parseInt( data[ 2 ] );
+							gpioPin = parseInt( data[ 0 ] + data[ 1 ] + data[ 2 ] );
+							activeState = parseInt( data[ 3 ] );
 						}
 
 						sel = "<div class='ui-bar-a ui-bar'>" + _( "GPIO Pin" ) + ":</div>" +
@@ -5161,7 +5056,7 @@ var showHome = ( function() {
 
 						button.data( "specialData", hex );
 					} else if ( hs === 3 ) {
-						var sd = pad( select.find( "#gpio-pin" ).val() || "05" );
+						var sd = pad3( select.find( "#gpio-pin" ).val() || "05" );
 						sd += select.find( "#active-state" ).val() || "1";
 						button.data( "specialData", sd );
 					} else if ( hs === 4 ) {
@@ -9463,11 +9358,6 @@ function importConfig( data ) {
 			co += "&ifkey=" + data.settings.ifkey;
 		}
 
-		// Import mqtt options, if available
-		if ( typeof data.settings.mqtt === "object" && checkOSVersion( 2191 ) ) {
-			co += "&mqtt=" + escapeJSON( data.settings.mqtt );
-			}
-
 		co += "&" + ( isPi ? "o" : "" ) + "loc=" + data.settings.loc;
 
 		for ( i = 0; i < data.stations.snames.length; i++ ) {
@@ -9687,7 +9577,7 @@ var showAbout = ( function() {
 					"</li>" +
 				"</ul>" +
 				"<p class='smaller'>" +
-					_( "App Version" ) + ": 2.2.0" +
+					_( "App Version" ) + ": 2.1.10" +
 					"<br>" + _( "Firmware" ) + ": <span class='firmware'></span>" +
 					"<br><span class='hardwareLabel'>" + _( "Hardware Version" ) + ":</span> <span class='hardware'></span>" +
 				"</p>" +
@@ -10472,14 +10362,14 @@ function checkPublicAccess( eip ) {
 			}
 
 			// Public IP worked, update device IP to use the public IP instead
-			// storage.get( [ "sites", "current_site" ], function( data ) {
-			// 	var sites = parseSites( data.sites ),
-			// 		current = data.current_site;
+			storage.get( [ "sites", "current_site" ], function( data ) {
+				var sites = parseSites( data.sites ),
+					current = data.current_site;
 
-			// 	sites[ current ].os_ip = ip + ( port === 80 ? "" : ":" + port );
+				sites[ current ].os_ip = ip + ( port === 80 ? "" : ":" + port );
 
-			// 	storage.set( { "sites":JSON.stringify( sites ) }, cloudSaveSites );
-			// } );
+				storage.set( { "sites":JSON.stringify( sites ) }, cloudSaveSites );
+			} );
 		},
 		fail
 	);
@@ -11432,40 +11322,40 @@ function showTimeInput( opt ) {
 			"<div class='ui-content'>" +
 				( opt.helptext ? "<p class='pad-top rain-desc center smaller'>" + opt.helptext + "</p>" : "" ) +
 				"<span>" +
-					"<fieldset class='ui-grid-" + ( isMetric ? "a" : "b" ) + " incr'>" +
+					"<fieldset class='ui-grid-b incr'>" +
 						"<div class='ui-block-a'>" +
 							"<a href='#' data-role='button' data-mini='true' data-corners='true' data-icon='plus' data-iconpos='bottom'></a>" +
 						"</div>" +
 						"<div class='ui-block-b'>" +
 							"<a href='#' data-role='button' data-mini='true' data-corners='true' data-icon='plus' data-iconpos='bottom'></a>" +
 						"</div>" +
-						( isMetric ? "" : "<div class='ui-block-c'>" +
+						"<div class='ui-block-c'>" +
 							"<a href='#' data-role='button' data-mini='true' data-corners='true' data-icon='plus' data-iconpos='bottom'></a>" +
-						"</div>" ) +
+						"</div>" +
 					"</fieldset>" +
-					"<div class='ui-grid-" + ( isMetric ? "a" : "b" ) + " inputs'>" +
+					"<div class='ui-grid-b inputs'>" +
 						"<div class='ui-block-a'>" +
 							"<input data-wrapper-class='pad_buttons' class='hour dontPad' type='number' pattern='[0-9]*' value='" +
-								( isMetric ? pad( ( opt.minutes / 60 >> 0 ) % 24 ) + "'>" : ( parseInt( opt.minutes / 60 ) % 12 === 0 ? 12 : parseInt( opt.minutes / 60 ) % 12 ) + "'>" ) +
+								( parseInt( opt.minutes / 60 ) % 12 === 0 ? 12 : parseInt( opt.minutes / 60 ) % 12 ) + "'>" +
 						"</div>" +
 						"<div class='ui-block-b'>" +
 							"<input data-wrapper-class='pad_buttons' class='minute' type='number' pattern='[0-9]*' value='" +
 								pad( opt.minutes % 60 ) + "'>" +
 						"</div>" +
-						( isMetric ? "" : "<div class='ui-block-c'>" +
+						"<div class='ui-block-c'>" +
 							"<p class='center period'>" + getPeriod() + "</p>" +
-						"</div>" ) +
+						"</div>" +
 					"</div>" +
-					"<fieldset class='ui-grid-" + ( isMetric ? "a" : "b" ) + " decr'>" +
+					"<fieldset class='ui-grid-b decr'>" +
 						"<div class='ui-block-a'>" +
 							"<a href='#' data-role='button' data-mini='true' data-corners='true' data-icon='minus' data-iconpos='bottom'></a>" +
 						"</div>" +
 						"<div class='ui-block-b'>" +
 							"<a href='#' data-role='button' data-mini='true' data-corners='true' data-icon='minus' data-iconpos='bottom'></a>" +
 						"</div>" +
-						( isMetric ? "" : "<div class='ui-block-c'>" +
+						"<div class='ui-block-c'>" +
 							"<a href='#' data-role='button' data-mini='true' data-corners='true' data-icon='minus' data-iconpos='bottom'></a>" +
-						"</div>" ) +
+						"</div>" +
 					"</fieldset>" +
 				"</span>" +
 				( opt.showSun ? "<div class='ui-grid-a useSun'>" +
@@ -11496,7 +11386,7 @@ function showTimeInput( opt ) {
 					val = parseInt( input.val() );
 
 				if ( dir === 1 ) {
-					if ( isHour && ( ( isMetric && val >= 24 ) || ( !isMetric && val >= 12 ) ) ) {
+					if ( isHour && val >= 12 ) {
 						val = 0;
 					}
 					if ( !isHour && val >= 59 ) {
@@ -11504,13 +11394,11 @@ function showTimeInput( opt ) {
 						var hour = popup.find( ".hour" ),
 							hourFixed = parseInt( hour.val() );
 
-						if ( !isMetric ) {
-							if ( hourFixed === 12 ) {
-								hourFixed = 0;
-							}
-
-							hour.val( hourFixed + 1 );
+						if ( hourFixed === 12 ) {
+							hourFixed = 0;
 						}
+
+						hour.val( hourFixed + 1 );
 					}
 				} else if ( isHour && val <= 1 ) {
 					val = 13;
@@ -11568,14 +11456,12 @@ function showTimeInput( opt ) {
 			} else {
 				var hour = parseInt( popup.find( ".hour" ).val() );
 
-				if ( !isMetric ) {
-					if ( isPM && hour !== 12 ) {
-						hour = hour + 12;
-					}
+				if ( isPM && hour !== 12 ) {
+					hour = hour + 12;
+				}
 
-					if ( !isPM && hour === 12 ) {
-						hour = 0;
-					}
+				if ( !isPM && hour === 12 ) {
+					hour = 0;
 				}
 
 				return ( hour * 60 ) + parseInt( popup.find( ".minute" ).val() );
@@ -12177,6 +12063,17 @@ function pad( number ) {
 	return r;
 }
 
+// Pad a number out to 3 digits with leading zeros
+function pad3( number ) {
+	var r = String( number );
+	if ( r.length === 1 ) {
+		r = "00" + r;
+	} else if ( r.length === 2 ) {
+		r = "0" + r;
+    }
+	return r;
+}
+
 // Escape characters for HTML support
 function htmlEscape( str ) {
 	return String( str )
@@ -12359,7 +12256,7 @@ function minutesToTime( minutes ) {
 		hour = 12;
 	}
 
-	return isMetric ? ( pad( ( minutes / 60 >> 0 ) % 24 ) + ":" + pad( minutes % 60 ) ) : ( hour + ":" + pad( minutes % 60 ) + " " + period );
+	return hour + ":" + pad( minutes % 60 ) + " " + period;
 }
 
 function getBitFromByte( byte, bit ) {
